@@ -11,7 +11,9 @@ class Mutation:
 
 @strawberry.type
 class Query:
-    hello: str = "Bem-vindo à API GraphQL de integração com Pipefy"
+    @strawberry.field
+    def hello(self) -> str:
+        return "Bem-vindo à API GraphQL de integração com Pipefy"
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

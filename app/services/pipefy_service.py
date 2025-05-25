@@ -1,6 +1,6 @@
 import requests
 from requests.exceptions import RequestException
-from app.core.config import PIPEFY_API_URL, PIPEFY_TOKEN, PIPE_ID, FINAL_PHASE_ID
+from app.core.config import PIPEFY_API_URL, PIPEFY_TOKEN
 
 
 class PipefyService:
@@ -30,7 +30,7 @@ class PipefyService:
         except Exception as e:
             raise Exception(f"Erro geral ao executar requisição Pipefy: {str(e)}")
 
-    def create_card(self, name: str, email: str, telefone: str) -> str:
+    def create_card(self, pipe_id: int, name: str, email: str, telefone: str) -> str:
         mutation = """
         mutation CreateCard($pipe_id: ID!, $fields_attributes: [FieldValueInput]) {
           createCard(input: {
@@ -47,7 +47,7 @@ class PipefyService:
             {"field_id": "telefone", "field_value": telefone},
         ]
         result = self.execute(
-            mutation, {"pipe_id": PIPE_ID, "fields_attributes": fields}
+            mutation, {"pipe_id": pipe_id, "fields_attributes": fields}
         )
         return result["data"]["createCard"]["card"]["id"]
 
@@ -63,6 +63,32 @@ class PipefyService:
         return f"Deletado: {result['data']['deleteCard']['success']}"
 
     def advance_card_phase(self, card_id: str) -> str:
+        query = """
+        query GetCard($id: ID!) {
+          card(id: $id) {
+            current_phase { id name }
+            pipe { phases { id name } }
+          }
+        }
+        """
+        card_data = self.execute(query, {"id": card_id})["data"]["card"]
+        current_phase = card_data.get("current_phase")
+        all_phases = card_data.get("pipe", {}).get("phases", [])
+
+        current_index = next(
+            (
+                i
+                for i, phase in enumerate(all_phases)
+                if phase["id"] == current_phase["id"]
+            ),
+            None,
+        )
+
+        if current_index is None or current_index + 1 >= len(all_phases):
+            return f"Card {card_id} já está na fase final: {current_phase['name']}"
+
+        next_phase = all_phases[current_index + 1]
+
         mutation = """
         mutation MoveCard($card_id: ID!, $destination_phase_id: ID!) {
           moveCardToPhase(input: {
@@ -73,7 +99,7 @@ class PipefyService:
           }
         }
         """
-        result = self.execute(
-            mutation, {"card_id": card_id, "destination_phase_id": FINAL_PHASE_ID}
+        self.execute(
+            mutation, {"card_id": card_id, "destination_phase_id": next_phase["id"]}
         )
-        return f"Card {card_id} movido para fase final. {result['data']["destination_phase_id"]['success']}"
+        return f"Card {card_id} movido para a fase: {next_phase['name']}"
