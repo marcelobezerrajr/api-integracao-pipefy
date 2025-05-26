@@ -19,12 +19,14 @@ API desenvolvida em Python com FastAPI e Strawberry para integração com a API 
 Cria um novo card no pipe informado.
 
 ```graphql
-mutation {
+mutation CreateCard {
   create_card(
-    pipe_id: 123456
-    name: "João"
-    email: "joao@email.com"
-    telefone: "11999999999"
+    input: {
+      pipe_id: 123456
+      name: "João"
+      email: "joao@email.com"
+      telefone: "11999999999"
+    }
   )
 }
 ```
@@ -34,7 +36,7 @@ mutation {
 Deleta um card pelo seu ID.
 
 ```graphql
-mutation {
+mutation DeleteCard {
   delete_card(card_id: "123456789")
 }
 ```
@@ -44,7 +46,7 @@ mutation {
 Move o card automaticamente para a próxima fase do pipe.
 
 ```graphql
-mutation {
+mutation AdvancePhase {
   advance_phase(card_id: "123456789")
 }
 ```
@@ -56,7 +58,7 @@ mutation {
 Verifica se a API está ativa.
 
 ```graphql
-query {
+query Hello {
   hello
 }
 ```
@@ -66,13 +68,16 @@ query {
 Retorna os cards do pipe, com fase atual, data e campos preenchidos.
 
 ```graphql
-query {
+query ListCards {
   list_cards(pipe_id: 123456) {
     id
     title
     created_at
     current_phase
-    fields
+    fields {
+      name
+      value
+    }
   }
 }
 ```
@@ -103,7 +108,7 @@ Acesse a interface GraphQL em: http://localhost:8000/graphql
 Crie um arquivo `.env` na raiz com o seguinte conteúdo:
 
 ```graphql
-PIPEFY_API_URL=https://api.pipefy.com/graphql
+PIPEFY_API_URL=url_da_api_aqui
 PIPEFY_TOKEN=seu_token_aqui
 ```
 
