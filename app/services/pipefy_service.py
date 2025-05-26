@@ -1,5 +1,6 @@
-import requests
 from requests.exceptions import RequestException
+import requests
+
 from app.core.config import PIPEFY_API_URL, PIPEFY_TOKEN
 
 
@@ -32,14 +33,14 @@ class PipefyService:
 
     def create_card(self, pipe_id: int, name: str, email: str, telefone: str) -> str:
         mutation = """
-        mutation CreateCard($pipe_id: ID!, $fields_attributes: [FieldValueInput]) {
-          createCard(input: {
-            pipe_id: $pipe_id,
-            fields_attributes: $fields_attributes
-          }) {
-            card { id }
+          mutation CreateCard($pipe_id: ID!, $fields_attributes: [FieldValueInput]) {
+            createCard(input: {
+              pipe_id: $pipe_id,
+              fields_attributes: $fields_attributes
+            }) {
+              card { id }
+            }
           }
-        }
         """
         fields = [
             {"field_id": "nome", "field_value": name},
@@ -53,23 +54,23 @@ class PipefyService:
 
     def delete_card(self, card_id: str) -> str:
         mutation = """
-        mutation DeleteCard($id: ID!) {
-          deleteCard(input: {id: $id}) {
-            success
+          mutation DeleteCard($id: ID!) {
+            deleteCard(input: {id: $id}) {
+              success
+            }
           }
-        }
         """
         result = self.execute(mutation, {"id": card_id})
         return f"Deletado: {result['data']['deleteCard']['success']}"
 
     def advance_card_phase(self, card_id: str) -> str:
         query = """
-        query GetCard($id: ID!) {
-          card(id: $id) {
-            current_phase { id name }
-            pipe { phases { id name } }
+          query GetCard($id: ID!) {
+            card(id: $id) {
+              current_phase { id name }
+              pipe { phases { id name } }
+            }
           }
-        }
         """
         card_data = self.execute(query, {"id": card_id})["data"]["card"]
         current_phase = card_data.get("current_phase")
@@ -90,16 +91,41 @@ class PipefyService:
         next_phase = all_phases[current_index + 1]
 
         mutation = """
-        mutation MoveCard($card_id: ID!, $destination_phase_id: ID!) {
-          moveCardToPhase(input: {
-            card_id: $card_id,
-            destination_phase_id: $destination_phase_id
-          }) {
-            card { id }
+          mutation MoveCard($card_id: ID!, $destination_phase_id: ID!) {
+            moveCardToPhase(input: {
+              card_id: $card_id,
+              destination_phase_id: $destination_phase_id
+            }) {
+              card { id }
+            }
           }
-        }
         """
         self.execute(
             mutation, {"card_id": card_id, "destination_phase_id": next_phase["id"]}
         )
         return f"Card {card_id} movido para a fase: {next_phase['name']}"
+
+    def list_cards(self, pipe_id: int) -> list:
+        query = """
+          query GetCards($pipe_id: ID!) {
+            cards(pipe_id: $pipe_id, first: 50) {
+              edges {
+                node {
+                  id
+                  title
+                  created_at
+                  current_phase {
+                    name
+                  }
+                  fields {
+                    name
+                    value
+                  }
+                }
+              }
+            }
+          }
+        """
+        result = self.execute(query, {"pipe_id": pipe_id})
+        cards = result["data"]["cards"]["edges"]
+        return [edge["node"] for edge in cards]

@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from strawberry.fastapi import GraphQLRouter
-from app.schemas.pipefy_schemas import schema
+
+from app.schemas.pipefy_schema import schema
 
 app = FastAPI(
     title="Integração Pipefy GraphQL API",
