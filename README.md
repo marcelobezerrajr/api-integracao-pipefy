@@ -1,4 +1,4 @@
-# Pipefy GraphQL API
+<h1 align="center">Pipefy GraphQL API 🤖</h1>
 
 API desenvolvida em Python com FastAPI e Strawberry para integração com a API GraphQL do Pipefy. Permite criar, listar, atualizar e deletar cards de forma robusta e automatizada.
 
