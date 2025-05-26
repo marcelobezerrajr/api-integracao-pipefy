@@ -1,3 +1,4 @@
+from typing import Optional, Dict, Any, List
 from requests.exceptions import RequestException
 import requests
 
@@ -11,7 +12,9 @@ class PipefyService:
             "Content-Type": "application/json",
         }
 
-    def execute(self, query: str, variables: dict = None):
+    def execute(
+        self, query: str, variables: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         try:
             response = requests.post(
                 PIPEFY_API_URL,
@@ -20,14 +23,20 @@ class PipefyService:
                 timeout=10,
             )
             response.raise_for_status()
-            json_data = response.json()
+            data = response.json()
 
-            if "errors" in json_data:
-                raise Exception(f"GraphQL error: {json_data['errors']}")
+            if "errors" in data:
+                message = "; ".join(
+                    error.get("message", "Erro desconhecido")
+                    for error in data["errors"]
+                )
+                raise Exception(f"Erro GraphQL: {message}")
 
-            return json_data
+            return data
         except RequestException as e:
             raise Exception(f"Erro de rede ao acessar o Pipefy: {str(e)}")
+        except ValueError:
+            raise Exception("Resposta inválida ao decodificar JSON.")
         except Exception as e:
             raise Exception(f"Erro geral ao executar requisição Pipefy: {str(e)}")
 
@@ -61,7 +70,8 @@ class PipefyService:
           }
         """
         result = self.execute(mutation, {"id": card_id})
-        return f"Deletado: {result['data']['deleteCard']['success']}"
+        success = result["data"]["deleteCard"]["success"]
+        return "Card deletado com sucesso." if success else "Falha ao deletar card."
 
     def advance_card_phase(self, card_id: str) -> str:
         query = """
@@ -105,7 +115,7 @@ class PipefyService:
         )
         return f"Card {card_id} movido para a fase: {next_phase['name']}"
 
-    def list_cards(self, pipe_id: int) -> list:
+    def list_cards(self, pipe_id: int) -> List[Dict[str, Any]]:
         query = """
           query GetCards($pipe_id: ID!) {
             cards(pipe_id: $pipe_id, first: 50) {
@@ -127,5 +137,4 @@ class PipefyService:
           }
         """
         result = self.execute(query, {"pipe_id": pipe_id})
-        cards = result["data"]["cards"]["edges"]
-        return [edge["node"] for edge in cards]
+        return [edge["node"] for edge in result["data"]["cards"]["edges"]]
