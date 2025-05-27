@@ -1,31 +1,10 @@
-from typing import List
+from typing import List, Dict
 from strawberry.exceptions import GraphQLError
 
 from app.services.pipefy_service import PipefyService
 from app.schemas.card_shema import Card, Field
 
 pipefy = PipefyService()
-
-
-def create_card(pipe_id: int, name: str, email: str, telefone: str) -> str:
-    try:
-        return pipefy.create_card(pipe_id, name, email, telefone)
-    except Exception as e:
-        raise GraphQLError(f"Erro ao criar card: {str(e)}")
-
-
-def delete_card(card_id: str) -> str:
-    try:
-        return pipefy.delete_card(card_id)
-    except Exception as e:
-        raise GraphQLError(f"Erro ao deletar card: {str(e)}")
-
-
-def advance_phase(card_id: str) -> str:
-    try:
-        return pipefy.advance_card_phase(card_id)
-    except Exception as e:
-        raise GraphQLError(f"Erro ao avançar fase do card: {str(e)}")
 
 
 def list_cards(pipe_id: int) -> List[Card]:
@@ -45,3 +24,33 @@ def list_cards(pipe_id: int) -> List[Card]:
         ]
     except Exception as e:
         raise GraphQLError(f"Erro ao listar cards: {str(e)}")
+
+
+def list_cidades(table_id: int) -> List[Dict[str, str]]:
+    try:
+        return pipefy.list_cidades(table_id)
+    except Exception as e:
+        raise GraphQLError(f"Erro ao listar cidades: {str(e)}")
+
+
+def create_card(
+    pipe_id: int, name: str, email: str, telefone: str, cidade_id: int
+) -> str:
+    try:
+        return pipefy.create_card(pipe_id, name, email, telefone, cidade_id)
+    except Exception as e:
+        raise GraphQLError(f"Erro ao criar card: {str(e)}")
+
+
+def delete_card(card_id: int) -> str:
+    try:
+        return pipefy.delete_card(card_id)
+    except Exception as e:
+        raise GraphQLError(f"Erro ao deletar card: {str(e)}")
+
+
+def advance_phase(card_id: int) -> str:
+    try:
+        return pipefy.advance_card_phase(card_id)
+    except Exception as e:
+        raise GraphQLError(f"Erro ao avançar fase do card: {str(e)}")
