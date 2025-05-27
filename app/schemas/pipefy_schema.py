@@ -35,11 +35,11 @@ class Mutation:
         )
 
     @strawberry.mutation(description="Deleta um card pelo ID")
-    def delete_card(self, card_id: str) -> str:
+    def delete_card(self, card_id: int) -> str:
         return delete_card(card_id)
 
     @strawberry.mutation(description="Avança o card para a próxima fase")
-    def advance_phase(self, card_id: str) -> str:
+    def advance_phase(self, card_id: int) -> str:
         return advance_phase(card_id)
 
 
