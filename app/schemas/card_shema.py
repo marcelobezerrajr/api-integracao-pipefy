@@ -3,7 +3,7 @@ import strawberry
 
 
 @strawberry.type
-class Field:
+class CardField:
     name: str
     value: str
 
@@ -14,4 +14,13 @@ class Card:
     title: str
     created_at: str
     current_phase: str
-    fields: List[Field]
+    fields: List[CardField]
+
+
+@strawberry.input
+class CreateCardInput:
+    pipe_id: int
+    name: str
+    email: str
+    telefone: str
+    cidade_id: int

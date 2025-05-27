@@ -6,7 +6,7 @@ API desenvolvida em Python com FastAPI e Strawberry para integração com a API 
 
 - Python 3.11+
 - FastAPI
-- Strawberry GraphQ
+- Strawberry GraphQL
 - Uvicorn
 - Pipefy GraphQL API
 
@@ -26,6 +26,7 @@ mutation CreateCard {
       name: "João"
       email: "joao@email.com"
       telefone: "11999999999"
+      cidade_id: 123456
     }
   )
 }
@@ -37,7 +38,7 @@ Deleta um card pelo seu ID.
 
 ```graphql
 mutation DeleteCard {
-  delete_card(card_id: "123456789")
+  delete_card(card_id: 123456789)
 }
 ```
 
@@ -47,7 +48,7 @@ Move o card automaticamente para a próxima fase do pipe.
 
 ```graphql
 mutation AdvancePhase {
-  advance_phase(card_id: "123456789")
+  advance_phase(card_id: 123456789)
 }
 ```
 
@@ -74,6 +75,22 @@ query ListCards {
     title
     created_at
     current_phase
+    fields {
+      name
+      value
+    }
+  }
+}
+```
+
+#### `list_cidades`
+
+Retorna as cidades da tabela do database do pipefy.
+
+```graphql
+query ListCidades {
+  listCidades(tableId: 123456) {
+    id
     fields {
       name
       value

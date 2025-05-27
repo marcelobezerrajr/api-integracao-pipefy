@@ -40,7 +40,59 @@ class PipefyService:
         except Exception as e:
             raise Exception(f"Erro geral ao executar requisição Pipefy: {str(e)}")
 
-    def create_card(self, pipe_id: int, name: str, email: str, telefone: str) -> str:
+    def list_cards(self, pipe_id: int) -> List[Dict[str, Any]]:
+        query = """
+        query GetCards($pipe_id: ID!) {
+          cards(pipe_id: $pipe_id, first: 50) {
+            edges {
+              node {
+                id
+                title
+                created_at
+                current_phase {
+                  name
+                }
+                fields {
+                  name
+                  value
+                }
+              }
+            }
+          }
+        }
+      """
+        result = self.execute(query, {"pipe_id": pipe_id})
+        return [edge["node"] for edge in result["data"]["cards"]["edges"]]
+
+    def list_cidades(self, table_id: str) -> List[Dict[str, Any]]:
+        query = """
+          query ListCidades($table_id: ID!) {
+            table_records(table_id: $table_id, first: 100) {
+              edges {
+                node {
+                  id
+                  record_fields {
+                    name
+                    value
+                  }
+                }
+              }
+            }
+          }
+        """
+        result = self.execute(query, {"table_id": table_id})
+        cidades = []
+
+        for edge in result["data"]["table_records"]["edges"]:
+            node = edge["node"]
+            fields_dict = {f["name"]: f["value"] for f in node["record_fields"]}
+            cidades.append({"id": node["id"], "fields": fields_dict})
+
+        return cidades
+
+    def create_card(
+        self, pipe_id: int, name: str, email: str, telefone: str, cidade_id: int
+    ) -> str:
         mutation = """
           mutation CreateCard($pipe_id: ID!, $fields_attributes: [FieldValueInput]) {
             createCard(input: {
@@ -55,13 +107,14 @@ class PipefyService:
             {"field_id": "nome", "field_value": name},
             {"field_id": "email", "field_value": email},
             {"field_id": "telefone", "field_value": telefone},
+            {"field_id": "cidade", "field_value": cidade_id},
         ]
         result = self.execute(
             mutation, {"pipe_id": pipe_id, "fields_attributes": fields}
         )
         return result["data"]["createCard"]["card"]["id"]
 
-    def delete_card(self, card_id: str) -> str:
+    def delete_card(self, card_id: int) -> str:
         mutation = """
           mutation DeleteCard($id: ID!) {
             deleteCard(input: {id: $id}) {
@@ -73,7 +126,7 @@ class PipefyService:
         success = result["data"]["deleteCard"]["success"]
         return "Card deletado com sucesso." if success else "Falha ao deletar card."
 
-    def advance_card_phase(self, card_id: str) -> str:
+    def advance_card_phase(self, card_id: int) -> str:
         query = """
           query GetCard($id: ID!) {
             card(id: $id) {
@@ -114,27 +167,3 @@ class PipefyService:
             mutation, {"card_id": card_id, "destination_phase_id": next_phase["id"]}
         )
         return f"Card {card_id} movido para a fase: {next_phase['name']}"
-
-    def list_cards(self, pipe_id: int) -> List[Dict[str, Any]]:
-        query = """
-          query GetCards($pipe_id: ID!) {
-            cards(pipe_id: $pipe_id, first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  created_at
-                  current_phase {
-                    name
-                  }
-                  fields {
-                    name
-                    value
-                  }
-                }
-              }
-            }
-          }
-        """
-        result = self.execute(query, {"pipe_id": pipe_id})
-        return [edge["node"] for edge in result["data"]["cards"]["edges"]]
