@@ -89,9 +89,12 @@ Retorna as cidades da tabela do database do pipefy.
 
 ```graphql
 query ListCidades {
-  listCidades(tableId: 306428429) {
+  listCidades(tableId: 123456) {
     id
-    nome
+    fields {
+      name
+      value
+    }
   }
 }
 ```

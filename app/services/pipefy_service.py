@@ -64,31 +64,29 @@ class PipefyService:
         result = self.execute(query, {"pipe_id": pipe_id})
         return [edge["node"] for edge in result["data"]["cards"]["edges"]]
 
-    def list_cidades(self, table_id: int) -> List[Dict[str, Any]]:
+    def list_cidades(self, table_id: str) -> List[Dict[str, Any]]:
         query = """
-        query ListCidades($table_id: ID!) {
-          table_records(table_id: $table_id, first: 100) {
-            edges {
-              node {
-                id
-                record_fields {
-                  name
-                  value
+          query ListCidades($table_id: ID!) {
+            table_records(table_id: $table_id, first: 100) {
+              edges {
+                node {
+                  id
+                  record_fields {
+                    name
+                    value
+                  }
                 }
               }
             }
           }
-        }
         """
         result = self.execute(query, {"table_id": table_id})
         cidades = []
 
         for edge in result["data"]["table_records"]["edges"]:
             node = edge["node"]
-            cidade_nome = next(
-                (f["value"] for f in node["record_fields"] if f["name"] == "Nome"), ""
-            )
-            cidades.append({"id": int(node["id"]), "nome": cidade_nome})
+            fields_dict = {f["name"]: f["value"] for f in node["record_fields"]}
+            cidades.append({"id": node["id"], "fields": fields_dict})
 
         return cidades
 

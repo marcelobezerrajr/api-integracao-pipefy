@@ -1,8 +1,9 @@
-from typing import List, Dict
+from typing import List
 from strawberry.exceptions import GraphQLError
 
 from app.services.pipefy_service import PipefyService
-from app.schemas.card_shema import Card, Field
+from app.schemas.card_shema import Card, CardField
+from app.schemas.cidade_schema import Cidade, CidadeField
 
 pipefy = PipefyService()
 
@@ -17,7 +18,7 @@ def list_cards(pipe_id: int) -> List[Card]:
                 created_at=card["created_at"],
                 current_phase=card["current_phase"]["name"],
                 fields=[
-                    Field(name=f["name"], value=f["value"]) for f in card["fields"]
+                    CardField(name=f["name"], value=f["value"]) for f in card["fields"]
                 ],
             )
             for card in cards
@@ -26,9 +27,18 @@ def list_cards(pipe_id: int) -> List[Card]:
         raise GraphQLError(f"Erro ao listar cards: {str(e)}")
 
 
-def list_cidades(table_id: int) -> List[Dict[str, str]]:
+def list_cidades(table_id: str) -> List[Cidade]:
     try:
-        return pipefy.list_cidades(table_id)
+        raw_cidades = pipefy.list_cidades(table_id)
+        return [
+            Cidade(
+                id=cidade["id"],
+                fields=[
+                    CidadeField(name=k, value=v) for k, v in cidade["fields"].items()
+                ],
+            )
+            for cidade in raw_cidades
+        ]
     except Exception as e:
         raise GraphQLError(f"Erro ao listar cidades: {str(e)}")
 

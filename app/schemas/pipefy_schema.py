@@ -8,22 +8,8 @@ from app.api.resolvers import (
     list_cards,
     list_cidades,
 )
-from app.schemas.card_shema import Card
-
-
-@strawberry.input
-class CreateCardInput:
-    pipe_id: int
-    name: str
-    email: str
-    telefone: str
-    cidade_id: int
-
-
-@strawberry.type
-class Cidade:
-    id: int
-    nome: str
+from app.schemas.card_shema import Card, CreateCardInput
+from app.schemas.cidade_schema import Cidade
 
 
 @strawberry.type
@@ -55,8 +41,7 @@ class Query:
 
     @strawberry.field(description="Lista as cidades da database")
     def list_cidades(self, table_id: int) -> List[Cidade]:
-        data = list_cidades(table_id)
-        return [Cidade(id=cid["id"], nome=cid["nome"]) for cid in data]
+        return list_cidades(table_id)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
