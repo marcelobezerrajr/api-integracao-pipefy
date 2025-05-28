@@ -129,6 +129,16 @@ PIPEFY_API_URL=url_da_api_aqui
 PIPEFY_TOKEN=seu_token_aqui
 ```
 
-## 📈 Testes (via Postman ou Playground)
+## 📬 Testes (via Postman ou Playground)
 
-Use o endpoint `http://localhost:8000/graphql` com qualquer query/mutation mostrada acima.
+Você pode testar os endpoints GraphQL usando o Postman ou o Playground, utilizando o seguinte endpoint:
+
+```bash
+http://localhost:8000/graphql
+```
+
+## 🔗 Collection no Postman
+
+Uma collection pronta para testes está disponível no link abaixo:
+
+👉 [Acessar collection no Postman](https://www.postman.com/marcelo-7952/integrao-pipefy-testes-de-api/collection/6830c0595ac051812a6b4c10?action=share&creator=39796403)
